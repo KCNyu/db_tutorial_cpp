@@ -16,3 +16,4 @@ SQL ***(Structured Query Language:结构化查询语言)*** 是一种特定目�
 
 ## 4. 教学大纲
 * [tutorial01-实现REPL](./tutorial01/README.md)
+* [tutorial02-实现解析前端和虚拟机](./tutorial02/README.md)
