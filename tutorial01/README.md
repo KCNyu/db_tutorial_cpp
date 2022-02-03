@@ -32,3 +32,6 @@ int main(int argc, char const *argv[])
     return 0;
 }
 ```
+
+## 3. 总结
+作为教程第一章，实现REPL是非常基础的。由于我们使用了std::string，故省去了很多`c_str`内存管理以及长度等一系列繁琐的事情。
