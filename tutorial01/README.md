@@ -6,30 +6,39 @@
 
 `.exit`意味着退出当前REPL交互，即成功退出，其他情况即输出未知命令。
 ```c++
-void print_prompt()
+void DB::print_prompt()
 {
     std::cout << "db > ";
 }
 
-int main(int argc, char const *argv[])
+bool DB::parse_meta_command(std::string command)
+{
+    if (command == ".exit")
+    {
+        std::cout << "Bye!" << std::endl;
+        exit(EXIT_SUCCESS);
+    }
+    else
+    {
+        std::cout << "Unrecognized command: " << command << std::endl;
+        return true;
+    }
+    return false;
+}
+void DB::start()
 {
     while (true)
     {
         print_prompt();
+        
         std::string input_line;
         std::getline(std::cin, input_line);
 
-        if (input_line == ".exit")
+        if (parse_meta_command(input_line))
         {
-            exit(EXIT_SUCCESS);
-        }
-        else
-        {
-            std::cout << "Unrecognized command " 
-            << input_line << "." << std::endl;
+            continue;
         }
     }
-    return 0;
 }
 ```
 
