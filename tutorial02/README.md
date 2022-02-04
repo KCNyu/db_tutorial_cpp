@@ -21,7 +21,7 @@ bool DB::parse_meta_command(std::string command)
     }
     return false;
 }
-DB::MetaCommandResult DB::do_meta_command(std::string command)
+MetaCommandResult DB::do_meta_command(std::string command)
 {
     if (command == ".exit")
     {
@@ -54,16 +54,16 @@ enum PrePareResult
 `
 这个枚举结果用于返回我们所传递的`sql`语句是否是符合标准的状态。这个时候就能将传统的以`select`或`insert`开头的`sql`语句转化成对应的`statement`状态字节码。
 ```c++
-DB::PrePareResult DB::prepare_statement(std::string statement, StatementType &type)
+PrePareResult DB::prepare_statement(std::string &input_line, Statement &statement)
 {
-    if (!statement.compare(0, 6, "insert"))
+    if (!input_line.compare(0, 6, "insert"))
     {
-        type = STATEMENT_INSERT;
+        statement.type = STATEMENT_INSERT;
         return PREPARE_SUCCESS;
     }
-    else if (!statement.compare(0, 6, "select"))
+    else if (!input_line.compare(0, 6, "select"))
     {
-        type = STATEMENT_SELECT;
+        statement.type = STATEMENT_SELECT;
         return PREPARE_SUCCESS;
     }
     else
@@ -82,14 +82,14 @@ DB::PrePareResult DB::prepare_statement(std::string statement, StatementType &ty
 `
 同时再将上一步成功转化后得到的`statement`交给虚拟机进行解析。
 ```c++
-bool DB::parse_statement(std::string statement, StatementType &type)
+bool DB::parse_statement(std::string &input_line, Statement &statement)
 {
-    switch (prepare_statement(statement, type))
+    switch (prepare_statement(input_line, statement))
     {
     case PREPARE_SUCCESS:
         return false;
     case PREPARE_UNRECOGNIZED_STATEMENT:
-        std::cout << "Unrecognized keyword at start of '" << statement << "'." << std::endl;
+        std::cout << "Unrecognized keyword at start of '" << input_line << "'." << std::endl;
         return true;
     }
     return false;
@@ -100,9 +100,9 @@ bool DB::parse_statement(std::string statement, StatementType &type)
 ## 3. 怎么实现一个虚拟机？
 我们先根据得到的`statement`让虚拟机伪执行一下对应`sql`语句的操作效果。
 ```c++
-void DB::excute_statement(StatementType &type)
+void DB::excute_statement(Statement &statement)
 {
-    switch (type)
+    switch (statement.type)
     {
     case STATEMENT_INSERT:
         std::cout << "Executing insert statement" << std::endl;
@@ -117,7 +117,7 @@ void DB::start()
     while (true)
     {
         print_prompt();
-        
+
         std::string input_line;
         std::getline(std::cin, input_line);
 
@@ -126,7 +126,7 @@ void DB::start()
             continue;
         }
 
-        StatementType m_currentStatementType;
+        Statement m_currentStatementType;
 
         if (parse_statement(input_line, m_currentStatementType))
         {

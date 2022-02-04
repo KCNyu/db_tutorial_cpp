@@ -1,37 +1,44 @@
 #include <iostream>
 #include <string>
 
+enum MetaCommandResult
+{
+    META_COMMAND_SUCCESS,
+    META_COMMAND_UNRECOGNIZED_COMMAND
+};
+enum PrePareResult
+{
+    PREPARE_SUCCESS,
+    PREPARE_UNRECOGNIZED_STATEMENT
+};
+enum StatementType
+{
+    STATEMENT_INSERT,
+    STATEMENT_SELECT
+};
+enum ExecuteResult
+{
+    EXECUTE_SUCCESS,
+    EXECUTE_TABLE_FULL
+};
+class Statement
+{
+public:
+    StatementType type;
+};
+
 class DB
 {
-private:
-    enum MetaCommandResult
-    {
-        META_COMMAND_SUCCESS,
-        META_COMMAND_UNRECOGNIZED_COMMAND
-    };
-    enum PrePareResult
-    {
-        PREPARE_SUCCESS,
-        PREPARE_UNRECOGNIZED_STATEMENT
-    };
-    enum StatementType
-    {
-        STATEMENT_INSERT,
-        STATEMENT_SELECT
-    };
-
 public:
-    DB() {}
-    ~DB() {}
     void start();
     void print_prompt();
 
-    bool parse_meta_command(std::string command);
-    MetaCommandResult do_meta_command(std::string command);
+    bool parse_meta_command(std::string &command);
+    MetaCommandResult do_meta_command(std::string &command);
 
-    PrePareResult prepare_statement(std::string statement, StatementType &type);
-    bool parse_statement(std::string statement, StatementType &type);
-    void excute_statement(StatementType &type);
+    PrePareResult prepare_statement(std::string &input_line, Statement &statement);
+    bool parse_statement(std::string &input_line, Statement &statement);
+    void excute_statement(Statement &statement);
 };
 
 void DB::print_prompt()
@@ -39,7 +46,7 @@ void DB::print_prompt()
     std::cout << "db > ";
 }
 
-bool DB::parse_meta_command(std::string command)
+bool DB::parse_meta_command(std::string &command)
 {
     if (command[0] == '.')
     {
@@ -54,7 +61,7 @@ bool DB::parse_meta_command(std::string command)
     }
     return false;
 }
-DB::MetaCommandResult DB::do_meta_command(std::string command)
+MetaCommandResult DB::do_meta_command(std::string &command)
 {
     if (command == ".exit")
     {
@@ -67,16 +74,16 @@ DB::MetaCommandResult DB::do_meta_command(std::string command)
     }
 }
 
-DB::PrePareResult DB::prepare_statement(std::string statement, StatementType &type)
+PrePareResult DB::prepare_statement(std::string &input_line, Statement &statement)
 {
-    if (!statement.compare(0, 6, "insert"))
+    if (!input_line.compare(0, 6, "insert"))
     {
-        type = STATEMENT_INSERT;
+        statement.type = STATEMENT_INSERT;
         return PREPARE_SUCCESS;
     }
-    else if (!statement.compare(0, 6, "select"))
+    else if (!input_line.compare(0, 6, "select"))
     {
-        type = STATEMENT_SELECT;
+        statement.type = STATEMENT_SELECT;
         return PREPARE_SUCCESS;
     }
     else
@@ -84,21 +91,21 @@ DB::PrePareResult DB::prepare_statement(std::string statement, StatementType &ty
         return PREPARE_UNRECOGNIZED_STATEMENT;
     }
 }
-bool DB::parse_statement(std::string statement, StatementType &type)
+bool DB::parse_statement(std::string &input_line, Statement &statement)
 {
-    switch (prepare_statement(statement, type))
+    switch (prepare_statement(input_line, statement))
     {
     case PREPARE_SUCCESS:
         return false;
     case PREPARE_UNRECOGNIZED_STATEMENT:
-        std::cout << "Unrecognized keyword at start of '" << statement << "'." << std::endl;
+        std::cout << "Unrecognized keyword at start of '" << input_line << "'." << std::endl;
         return true;
     }
     return false;
 }
-void DB::excute_statement(StatementType &type)
+void DB::excute_statement(Statement &statement)
 {
-    switch (type)
+    switch (statement.type)
     {
     case STATEMENT_INSERT:
         std::cout << "Executing insert statement" << std::endl;
@@ -114,7 +121,7 @@ void DB::start()
     while (true)
     {
         print_prompt();
-        
+
         std::string input_line;
         std::getline(std::cin, input_line);
 
@@ -123,7 +130,7 @@ void DB::start()
             continue;
         }
 
-        StatementType m_currentStatementType;
+        Statement m_currentStatementType;
 
         if (parse_statement(input_line, m_currentStatementType))
         {

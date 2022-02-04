@@ -31,3 +31,6 @@
 *.out
 *.app
 db
+
+# vscode
+.vscode
