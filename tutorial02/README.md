@@ -46,7 +46,7 @@ enum MetaCommandResult
 
 因此接下来，我将一次性定义另外两个解析结果用于解析`sql`语句。
 `    
-enum PrePareResult
+enum PrepareResult
     {
         PREPARE_SUCCESS,
         PREPARE_UNRECOGNIZED_STATEMENT
@@ -54,7 +54,7 @@ enum PrePareResult
 `
 这个枚举结果用于返回我们所传递的`sql`语句是否是符合标准的状态。这个时候就能将传统的以`select`或`insert`开头的`sql`语句转化成对应的`statement`状态字节码。
 ```c++
-PrePareResult DB::prepare_statement(std::string &input_line, Statement &statement)
+PrepareResult DB::prepare_statement(std::string &input_line, Statement &statement)
 {
     if (!input_line.compare(0, 6, "insert"))
     {

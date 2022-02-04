@@ -6,7 +6,7 @@ enum MetaCommandResult
     META_COMMAND_SUCCESS,
     META_COMMAND_UNRECOGNIZED_COMMAND
 };
-enum PrePareResult
+enum PrepareResult
 {
     PREPARE_SUCCESS,
     PREPARE_UNRECOGNIZED_STATEMENT
@@ -16,11 +16,7 @@ enum StatementType
     STATEMENT_INSERT,
     STATEMENT_SELECT
 };
-enum ExecuteResult
-{
-    EXECUTE_SUCCESS,
-    EXECUTE_TABLE_FULL
-};
+
 class Statement
 {
 public:
@@ -36,7 +32,7 @@ public:
     bool parse_meta_command(std::string &command);
     MetaCommandResult do_meta_command(std::string &command);
 
-    PrePareResult prepare_statement(std::string &input_line, Statement &statement);
+    PrepareResult prepare_statement(std::string &input_line, Statement &statement);
     bool parse_statement(std::string &input_line, Statement &statement);
     void execute_statement(Statement &statement);
 };
@@ -74,7 +70,7 @@ MetaCommandResult DB::do_meta_command(std::string &command)
     }
 }
 
-PrePareResult DB::prepare_statement(std::string &input_line, Statement &statement)
+PrepareResult DB::prepare_statement(std::string &input_line, Statement &statement)
 {
     if (!input_line.compare(0, 6, "insert"))
     {
