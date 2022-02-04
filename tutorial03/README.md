@@ -182,7 +182,7 @@ ExecuteResult DB::execute_select(Statement &statement, Table &table)
         Row row;
         void *page = row_slot(table, i);
         deserialize_row(page, row);
-        std::cout << row.id << " " << row.username << " " << row.email << std::endl;
+        std::cout << "(" << row.id << " " << row.username << " " << row.email << ")" << std::endl;
     }
 
     return EXECUTE_SUCCESS;
