@@ -36,7 +36,8 @@ public:
 |id        |  4   |	0|
 |username  |  32  |	4|
 |email	   |  255 |36|
-|总计	   |  291	 
+|总计	   |  291|  |
+ 
 我们通过实现序列化 ***(serialize)*** 以及反序列化 ***(serialize)*** 来达成我们的目的。同时注意到我们这里写了一个`(char *)`的强制转化类型，是为了让编译器明白，偏移量 ***(offset)*** 是以单个字节 ***(bytes)*** 为单位的。
 ```c++
 #define size_of_attribute(Struct, Attribute) sizeof(((Struct *)0)->Attribute)

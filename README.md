@@ -35,3 +35,4 @@ IV、操作系统层接口 ***(os interface)***
 ## 4. 教学大纲
 * [tutorial01-实现REPL](./tutorial01/README.md)
 * [tutorial02-实现解析前端和虚拟机](./tutorial02/README.md)
+* [tutorial03-实现insert和select](./tutorial03/README.md)
