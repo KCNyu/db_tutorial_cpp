@@ -38,7 +38,7 @@ public:
 
     PrePareResult prepare_statement(std::string &input_line, Statement &statement);
     bool parse_statement(std::string &input_line, Statement &statement);
-    void excute_statement(Statement &statement);
+    void execute_statement(Statement &statement);
 };
 
 void DB::print_prompt()
@@ -103,7 +103,7 @@ bool DB::parse_statement(std::string &input_line, Statement &statement)
     }
     return false;
 }
-void DB::excute_statement(Statement &statement)
+void DB::execute_statement(Statement &statement)
 {
     switch (statement.type)
     {
@@ -130,14 +130,14 @@ void DB::start()
             continue;
         }
 
-        Statement m_currentStatementType;
+        Statement statement;
 
-        if (parse_statement(input_line, m_currentStatementType))
+        if (parse_statement(input_line, statement))
         {
             continue;
         }
 
-        excute_statement(m_currentStatementType);
+        execute_statement(statement);
     }
 }
 

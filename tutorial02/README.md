@@ -126,14 +126,14 @@ void DB::start()
             continue;
         }
 
-        Statement m_currentStatementType;
+        Statement statement;
 
-        if (parse_statement(input_line, m_currentStatementType))
+        if (parse_statement(input_line, statement))
         {
             continue;
         }
 
-        excute_statement(m_currentStatementType);
+        execute_statement(statement);
     }
 }
 ```
