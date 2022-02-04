@@ -4,8 +4,6 @@
 class DB
 {
 public:
-    DB() {}
-    ~DB() {}
     void start();
     void print_prompt();
 
