@@ -217,7 +217,7 @@ Table::~Table()
     int result = close(pager.file_descriptor);
     if (result == -1)
     {
-        printf("Error closing db file.\n");
+        std::cout << "Error closing db file." << std::endl;
         exit(EXIT_FAILURE);
     }
     for (uint32_t i = 0; i < TABLE_MAX_PAGES; i++)
@@ -247,7 +247,7 @@ public:
 class DB
 {
 private:
-    Table* table;
+    Table *table;
 
 public:
     DB(const char *filename)
@@ -297,7 +297,7 @@ MetaCommandResult DB::do_meta_command(std::string &command)
 {
     if (command == ".exit")
     {
-        delete(table);
+        delete (table);
         std::cout << "Bye!" << std::endl;
         exit(EXIT_SUCCESS);
     }
