@@ -34,3 +34,6 @@ db
 
 # vscode
 .vscode
+
+# testdb
+*.db
