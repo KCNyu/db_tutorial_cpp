@@ -1,9 +1,39 @@
 # 如何用C++实现一个简易数据库（二）
 
-## 1. SQL的解析前端是什么？
+## 1. 如何修改我们的单元测试？
+由于我们的情况增多，我们可能会对之前的测试情况进行修改，所以各个章节内的单元测试可能相同，但实际期望的返回值会有所不同，希望注意。此外，头部的`run_script`函数是相同的，至此不再赘述。
+```ruby
+  it 'test exit and unrecognized command and sql sentence' do
+    result = run_script([
+      "hello world",
+      ".HELLO WORLD",
+      ".exit",
+    ])
+    expect(result).to match_array([
+      "db > Unrecognized keyword at start of 'hello world'.",
+      "db > Unrecognized command: .HELLO WORLD",
+      "db > Bye!",
+    ])
+  end
+
+  it 'test insert and select' do
+    result = run_script([
+      "insert 1 user1",
+      "select",
+      ".exit",
+    ])
+    expect(result).to match_array([
+      "db > Executing insert statement",
+      "db > Executing select statement",
+      "db > Bye!",
+    ])
+  end
+```
+注意到我们现在所期望的返回值已经是不同的了，我们对输入内容做出了不同的解析，现在就让我们来看一下如何实现这个解析前端。
+## 2. SQL的解析前端是什么？
 它将传统输入的`string`字符串，解析成可被机器识别的字节码内部表现形式，并传递给虚拟机进一步执行。
 
-## 2. 怎么实现一个SQL的解析前端？
+## 3. 怎么实现一个SQL的解析前端？
 先从我们上一章所解析的`command`来看起。我们将以`.`开头的非sql语句称作元命令 ***(meta command)*** 所以我们在一开始就检查是否以其开头，并单独封装一个`do_meta_command`函数来处理它。
 ```c++
 bool DB::parse_meta_command(std::string command)
@@ -97,7 +127,7 @@ bool DB::parse_statement(std::string &input_line, Statement &statement)
 ```
 至此我们初步完成了解析前端的工作，根据`command`或者`sql`得到了我们所需要的`statement`。
 
-## 3. 怎么实现一个虚拟机？
+## 4. 怎么实现一个虚拟机？
 我们先根据得到的`statement`让虚拟机伪执行一下对应`sql`语句的操作效果。
 ```c++
 void DB::excute_statement(Statement &statement)
@@ -137,5 +167,13 @@ void DB::start()
     }
 }
 ```
-## 4. 总结
+再次对我们的结果进行测试检验
+```
+..
+
+Finished in 0.00775 seconds (files took 0.07753 seconds to load)
+2 examples, 0 failures
+```
+恭喜大家又一次通过了所创建的测试。
+## 5. 总结
 作为教程的第二章，我们引入了`解析前端`和`虚拟机`的概念，同时将各种状态映射到对应的枚举类型。至此，我们数据库的基本框架已经搭建完成，下一章就要一起来实现`数据存储`功能了。

@@ -14,19 +14,35 @@ describe 'database' do
     raw_output.split("\n")
   end
 
+  it 'test exit and unrecognized command and sql sentence' do
+    result = run_script([
+      "hello world",
+      ".HELLO WORLD",
+      ".exit",
+    ])
+    expect(result).to match_array([
+      "db > Unrecognized keyword at start of 'hello world'.",
+      "db > Unrecognized command: .HELLO WORLD",
+      "db > Bye!",
+    ])
+  end
+
   it 'inserts and retrieves a row' do
     result = run_script([
       "insert 1 user1 person1@example.com",
+      "insert 2 user2",
       "select",
       ".exit",
     ])
     expect(result).to match_array([
       "db > Executed.",
+      "db > Syntax error. Could not parse statement.",
       "db > (1, user1, person1@example.com)",
       "Executed.",
       "db > Bye!",
     ])
   end
+
   it 'prints error message when table is full' do
     script = (1..1401).map do |i|
       "insert #{i} user#{i} person#{i}@example.com"
@@ -35,6 +51,7 @@ describe 'database' do
     result = run_script(script)
     expect(result[-2]).to eq('Error: Table full.')
   end
+
   it 'allows inserting strings that are the maximum length' do
     long_username = "a"*32
     long_email = "a"*255
@@ -51,6 +68,7 @@ describe 'database' do
       "db > Bye!",
     ])
   end
+
   it 'prints error message if strings are too long' do
     long_username = "a"*33
     long_email = "a"*256
@@ -66,6 +84,7 @@ describe 'database' do
       "db > Bye!",
     ])
   end
+
   it 'prints an error message if id is negative' do
     script = [
       "insert -1 cstack foo@bar.com",
@@ -79,4 +98,5 @@ describe 'database' do
       "db > Bye!",
     ])
   end
+  
 end

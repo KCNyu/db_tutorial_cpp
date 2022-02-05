@@ -14,26 +14,39 @@ SQL ***(Structured Query Language:结构化查询语言)*** 是一种特定目�
 ## 3. 我们最终会实现什么？
 前端 ***(front-end)***
 
-I、分词器 ***(tokenizer)***
+* 分词器 ***(tokenizer)***
 
-II、解析器 ***(parser)***
+* 解析器 ***(parser)***
 
-III、代码生成器 ***(code generator)***
+* 代码生成器 ***(code generator)***
 
 后端 ***(back-end)***
 
-I、虚拟机 ***(virtual machine)***
+* 虚拟机 ***(virtual machine)***
 
-II、B树 ***(B-tree)***
+* B树 ***(B-tree)***
 
-III、分页 ***(pager)***
+* 分页 ***(pager)***
 
-IV、操作系统层接口 ***(os interface)***
+* 操作系统层接口 ***(os interface)***
 
-经过本教程，大家将一起用 ***C++*** 实现一个类似于sqlite的关系型数据库。同时，本教程将基于原作者教程章节划分。此外所有的实现按章节独立且均基于 ***db.cpp*** 一个文件，方便读者学习。
 
-## 4. 教学大纲
-* [tutorial01-实现REPL](./tutorial01/README.md)
+## 4. 我们的开发流程是什么？
+### 测试驱动开发 ***(test driven development, TDD)***
+* 添加测试用例
+* 运行并查看失败的用例
+* 改动代码以通过测试
+* 通过全部测试
+  
+## 5. 我们的单元目录结构是什么？
+
+### **tutorial**
+* 本单元完整代码实现 ***(db.cpp)***
+* 本单元对应测试用例 ***(db_test.rb)***
+* 本单元对应教程详解 ***(README.md)***
+
+## 6. 教学大纲
+* [tutorial01-安装测试环境和实现REPL](./tutorial01/README.md)
 * [tutorial02-实现解析前端和虚拟机](./tutorial02/README.md)
 * [tutorial03-实现insert和select](./tutorial03/README.md)
-* [tutorial04-测试与修复BUG](./tutorial04/README.md)
+* [tutorial04-边界测试与修复BUG](./tutorial04/README.md)

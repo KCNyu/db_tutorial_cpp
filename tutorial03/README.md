@@ -7,7 +7,26 @@
 * 将一切数据储存到内存中，即退出程序后一切数据丢失。
 * 仅支持单个硬编码表
 
-## 2. 怎么设计我们的储存结构？
+## 2. 如何修改我们的测试用例？
+为了支持上述情况，我们需要修改我们的insert和select测试用例如下。
+```ruby
+it 'inserts and retrieves a row' do
+    result = run_script([
+      "insert 1 user1 person1@example.com",
+      "insert 2 user2",
+      "select",
+      ".exit",
+    ])
+    expect(result).to match_array([
+      "db > Executed.",
+      "db > Syntax error. Could not parse statement.",
+      "db > (1, user1, person1@example.com)",
+      "Executed.",
+      "db > Bye!",
+    ])
+  end
+```
+## 3. 怎么设计我们的储存结构？
 
 我们目前规定所储存的类型结构如下
 | 列       | 类型                    |
@@ -111,7 +130,7 @@ void *row_slot(Table &table, uint32_t row_num)
 }
 ```
 
-## 3. 怎么实现执行储存操作？
+## 4. 怎么实现执行储存操作？
 现在我们已经设计好了储存结构，让我们来看一下怎么执行储存操作。首先，我们为`statement`添加我们的`row`属性。
 ```c++
 class Statement
@@ -241,6 +260,13 @@ void DB::start()
     }
 }
 ```
+让我们来看看能否通过测试吧。
+```
+..
 
-## 4.总结
-我们已经初步实现了一个具有储存，查询固定表功能的一个数据库了。作为数据库，我们不可避免的涉及到了大量对内存指针的操作，这其中需要大家认真去理解每一个常量的设计原理以及考量。在下一章节，我们将对我们所写的数据库进行简单的单元测试，并且来一起修正其中的Bug。同时如果对本教程有所疑问或笔者存在错误，都欢迎在`评论区`或者`issue`中提出。
+Finished in 0.00768 seconds (files took 0.07764 seconds to load)
+2 examples, 0 failures
+```
+结果很不错，看上去我们的程序运行得很好，但是实际上我们还是需要更多的测试。
+## 5.总结
+我们已经初步实现了一个具有储存，查询固定表功能的一个数据库了。作为数据库，我们不可避免的涉及到了大量对内存指针的操作，这其中需要大家认真去理解每一个常量的设计原理以及考量。在下一章节，我们将对我们所写的数据库进行更加极端的边界测试，并且来一起修正其中的Bug。同时如果对本教程有所疑问或笔者存在错误，都欢迎在`评论区`或者`issue`中提出。
