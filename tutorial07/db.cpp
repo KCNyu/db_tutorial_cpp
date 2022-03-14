@@ -84,16 +84,19 @@ const uint32_t PAGE_SIZE = 4096;
 
 class Pager
 {
-public:
+private:
     int file_descriptor;
     uint32_t file_length;
     void *pages[TABLE_MAX_PAGES];
     uint32_t num_pages;
 
+public:
     Pager(const char *filename);
 
     void *get_page(uint32_t page_num);
     void pager_flush(uint32_t page_num);
+
+    friend class Table;
 };
 Pager::Pager(const char *filename)
 {
@@ -225,8 +228,10 @@ const uint32_t LEAF_NODE_MAX_CELLS =
 
 class LeafNode
 {
-public:
+private:
     void *node;
+
+public:
     LeafNode(void *node) : node(node) {}
     void initialize_leaf_node()
     {
@@ -261,10 +266,11 @@ public:
 };
 class Table
 {
-public:
+private:
     uint32_t root_page_num;
     Pager pager;
 
+public:
     Table(const char *filename) : pager(filename)
     {
         root_page_num = 0;
@@ -276,6 +282,9 @@ public:
         }
     }
     ~Table();
+
+    friend class Cursor;
+    friend class DB;
 };
 Table::~Table()
 {
@@ -309,16 +318,19 @@ Table::~Table()
 
 class Cursor
 {
-public:
+private:
     Table *table;
     uint32_t page_num;
     uint32_t cell_num;
     bool end_of_table;
 
+public:
     Cursor(Table *&table, bool option);
     void *cursor_value();
     void cursor_advance();
     void leaf_node_insert(uint32_t key, Row &value);
+
+    friend class DB;
 };
 Cursor::Cursor(Table *&table, bool option)
 {
