@@ -391,8 +391,8 @@ void Cursor::leaf_node_insert(uint32_t key, Row &value)
     }
 
     // insert new cell
-    *(leaf_node.leaf_node_num_cells()) += 1;
-    *(leaf_node.leaf_node_key(cell_num)) = key;
+    *leaf_node.leaf_node_num_cells() += 1;
+    *leaf_node.leaf_node_key(cell_num) = key;
     serialize_row(value, leaf_node.leaf_node_value(cell_num));
 }
 class Statement
@@ -553,7 +553,7 @@ bool DB::parse_statement(std::string &input_line, Statement &statement)
 ExecuteResult DB::execute_insert(Statement &statement)
 {
     LeafNode leaf_node = table->pager.get_page(table->root_page_num);
-    if (*(leaf_node.leaf_node_num_cells()) >= LEAF_NODE_MAX_CELLS)
+    if (*leaf_node.leaf_node_num_cells() >= LEAF_NODE_MAX_CELLS)
     {
         std::cout << "Leaf node full." << std::endl;
         return EXECUTE_TABLE_FULL;
