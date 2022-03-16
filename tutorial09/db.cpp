@@ -95,6 +95,39 @@ const uint32_t PARENT_POINTER_OFFSET = IS_ROOT_OFFSET + IS_ROOT_SIZE;
 const uint8_t COMMON_NODE_HEADER_SIZE =
     NODE_TYPE_SIZE + IS_ROOT_SIZE + PARENT_POINTER_SIZE;
 
+class Node
+{
+protected:
+    void *node;
+
+public:
+    Node() {}
+    Node(void *node) : node(node) {}
+
+    NodeType get_node_type()
+    {
+        uint8_t value = *((uint8_t *)((char *)node + NODE_TYPE_OFFSET));
+        return (NodeType)value;
+    }
+    void set_node_type(NodeType type)
+    {
+        *((uint8_t *)((char *)node + NODE_TYPE_OFFSET)) = (uint8_t)type;
+    }
+    void *get_node()
+    {
+        return node;
+    }
+    bool is_node_root()
+    {
+        uint8_t value = *((uint8_t *)((char *)node + IS_ROOT_OFFSET));
+        return value == 1;
+    }
+    void set_node_root(bool is_root)
+    {
+        *((uint8_t *)((char *)node + IS_ROOT_OFFSET)) = is_root ? 1 : 0;
+    }
+    virtual uint32_t get_node_max_key();
+};
 /*
  * Leaf Node Header Layout
  */
@@ -119,6 +152,40 @@ const uint32_t LEAF_NODE_RIGHT_SPLIT_COUNT = (LEAF_NODE_MAX_CELLS + 1) / 2;
 const uint32_t LEAF_NODE_LEFT_SPLIT_COUNT =
     (LEAF_NODE_MAX_CELLS + 1) - LEAF_NODE_RIGHT_SPLIT_COUNT;
 
+class LeafNode : public Node
+{
+public:
+    LeafNode() {}
+    LeafNode(void *node) : Node(node) {}
+
+    void initialize_leaf_node()
+    {
+        set_node_type(NODE_LEAF);
+        set_node_root(false);
+        *leaf_node_num_cells() = 0;
+    }
+    uint32_t *leaf_node_num_cells()
+    {
+        return (uint32_t *)((char *)node + LEAF_NODE_NUM_CELLS_OFFSET);
+    }
+    void *leaf_node_cell(uint32_t cell_num)
+    {
+        return (char *)node + LEAF_NODE_HEADER_SIZE + cell_num * LEAF_NODE_CELL_SIZE;
+    }
+    uint32_t *leaf_node_key(uint32_t cell_num)
+    {
+        return (uint32_t *)leaf_node_cell(cell_num);
+    }
+    void *leaf_node_value(uint32_t cell_num)
+    {
+        return (char *)leaf_node_cell(cell_num) + LEAF_NODE_KEY_SIZE;
+    }
+    uint32_t get_node_max_key() override
+    {
+        return *leaf_node_key(*leaf_node_num_cells() - 1);
+    }
+};
+
 /*
  * Internal Node Header Layout
  */
@@ -138,70 +205,17 @@ const uint32_t INTERNAL_NODE_CHILD_SIZE = sizeof(uint32_t);
 const uint32_t INTERNAL_NODE_CELL_SIZE =
     INTERNAL_NODE_CHILD_SIZE + INTERNAL_NODE_KEY_SIZE;
 
-void indent(uint32_t level)
+class InternalNode : public Node
 {
-    for (uint32_t i = 0; i < level; i++)
-    {
-        std::cout << "  ";
-    }
-}
-class Node
-{
-private:
-    void *node;
-
 public:
-    Node() {}
-    Node(void *node) : node(node) {}
-    void initialize_leaf_node()
-    {
-        set_node_type(NODE_LEAF);
-        set_node_root(false);
-        *leaf_node_num_cells() = 0;
-    }
+    InternalNode() {}
+    InternalNode(void *node) : Node(node) {}
+
     void initialize_internal_node()
     {
         set_node_type(NODE_INTERNAL);
         set_node_root(false);
         *internal_node_num_keys() = 0;
-    }
-    uint32_t *leaf_node_num_cells()
-    {
-        return (uint32_t *)((char *)node + LEAF_NODE_NUM_CELLS_OFFSET);
-    }
-    void *leaf_node_cell(uint32_t cell_num)
-    {
-        return (char *)node + LEAF_NODE_HEADER_SIZE + cell_num * LEAF_NODE_CELL_SIZE;
-    }
-    uint32_t *leaf_node_key(uint32_t cell_num)
-    {
-        return (uint32_t *)leaf_node_cell(cell_num);
-    }
-    void *leaf_node_value(uint32_t cell_num)
-    {
-        return (char *)leaf_node_cell(cell_num) + LEAF_NODE_KEY_SIZE;
-    }
-    NodeType get_node_type()
-    {
-        uint8_t value = *((uint8_t *)((char *)node + NODE_TYPE_OFFSET));
-        return (NodeType)value;
-    }
-    void set_node_type(NodeType type)
-    {
-        *((uint8_t *)((char *)node + NODE_TYPE_OFFSET)) = (uint8_t)type;
-    }
-    void *get_node()
-    {
-        return node;
-    }
-    bool is_node_root()
-    {
-        uint8_t value = *((uint8_t *)((char *)node + IS_ROOT_OFFSET));
-        return value == 1;
-    }
-    void set_node_root(bool is_root)
-    {
-        *((uint8_t *)((char *)node + IS_ROOT_OFFSET)) = is_root ? 1 : 0;
     }
     uint32_t *internal_node_num_keys()
     {
@@ -236,17 +250,24 @@ public:
     {
         return internal_node_cell(key_num) + INTERNAL_NODE_CHILD_SIZE;
     }
-    uint32_t get_node_max_key()
+    uint32_t get_node_max_key() override
     {
-        switch (get_node_type())
-        {
-        case NODE_INTERNAL:
-            return *internal_node_key(*internal_node_num_keys() - 1);
-        default:
-            return *leaf_node_key(*leaf_node_num_cells() - 1);
-        }
+        return *internal_node_key(*internal_node_num_keys() - 1);
     }
 };
+uint32_t Node::get_node_max_key()
+{
+    if (get_node_type() == NODE_LEAF)
+    {
+        LeafNode *leaf_node = (LeafNode *)this;
+        return *leaf_node->leaf_node_key(*leaf_node->leaf_node_num_cells() - 1);
+    }
+    else
+    {
+        InternalNode *internal_node = (InternalNode *)this;
+        return *internal_node->internal_node_key(*internal_node->internal_node_num_keys() - 1);
+    }
+}
 
 class Pager
 {
@@ -361,36 +382,43 @@ void Pager::pager_flush(uint32_t page_num)
         exit(EXIT_FAILURE);
     }
 }
+void indent(uint32_t level)
+{
+    for (uint32_t i = 0; i < level; i++)
+    {
+        std::cout << "  ";
+    }
+}
 void Pager::print_tree(uint32_t page_num, uint32_t indentation_level)
 {
-    Node node = get_page(page_num);
+    Node *node = new Node(get_page(page_num));
     uint32_t num_keys, child;
 
-    switch (node.get_node_type())
+    switch (node->get_node_type())
     {
     case (NODE_LEAF):
-        num_keys = *node.leaf_node_num_cells();
+        num_keys = *((LeafNode *)node)->leaf_node_num_cells();
         indent(indentation_level);
         std::cout << "- leaf (size " << num_keys << ")" << std::endl;
         for (uint32_t i = 0; i < num_keys; i++)
         {
             indent(indentation_level + 1);
-            std::cout << "- " << *node.leaf_node_key(i) << std::endl;
+            std::cout << "- " << *((LeafNode *)node)->leaf_node_key(i) << std::endl;
         }
         break;
     case (NODE_INTERNAL):
-        num_keys = *node.internal_node_num_keys();
+        num_keys = *((InternalNode *)node)->internal_node_num_keys();
         indent(indentation_level);
         std::cout << "- internal (size " << num_keys << ")" << std::endl;
         for (uint32_t i = 0; i < num_keys; i++)
         {
-            child = *node.internal_node_child(i);
+            child = *((InternalNode *)node)->internal_node_child(i);
             print_tree(child, indentation_level + 1);
 
             indent(indentation_level + 1);
-            std::cout << "- key " << *node.internal_node_key(i) << std::endl;
+            std::cout << "- key " << *((InternalNode *)node)->internal_node_key(i) << std::endl;
         }
-        child = *node.internal_node_right_child();
+        child = *((InternalNode *)node)->internal_node_right_child();
         print_tree(child, indentation_level + 1);
         break;
     }
@@ -437,7 +465,7 @@ public:
         if (pager.num_pages == 0)
         {
             // New file. Initialize page 0 as leaf node.
-            Node root_node = pager.get_page(0);
+            LeafNode root_node = pager.get_page(0);
             root_node.initialize_leaf_node();
             root_node.set_node_root(true);
         }
@@ -454,7 +482,7 @@ Cursor::Cursor(Table *table)
 {
     this->table = table;
     page_num = table->root_page_num;
-    Node root_node = table->pager.get_page(page_num);
+    LeafNode root_node = table->pager.get_page(page_num);
     uint32_t num_cells = *root_node.leaf_node_num_cells();
 
     // start at the beginning of the table
@@ -468,7 +496,7 @@ Cursor::Cursor(Table *table, uint32_t page_num, uint32_t key)
     this->page_num = page_num;
     this->end_of_table = false;
 
-    Node root_node = table->pager.get_page(page_num);
+    LeafNode root_node = table->pager.get_page(page_num);
     uint32_t num_cells = *root_node.leaf_node_num_cells();
 
     // Binary search
@@ -499,11 +527,11 @@ void *Cursor::cursor_value()
 {
     void *page = table->pager.get_page(page_num);
 
-    return Node(page).leaf_node_value(cell_num);
+    return LeafNode(page).leaf_node_value(cell_num);
 }
 void Cursor::cursor_advance()
 {
-    Node leaf_node = table->pager.get_page(page_num);
+    LeafNode leaf_node = table->pager.get_page(page_num);
     cell_num += 1;
     if (cell_num >= *leaf_node.leaf_node_num_cells())
     {
@@ -512,7 +540,7 @@ void Cursor::cursor_advance()
 }
 void Cursor::leaf_node_insert(uint32_t key, Row &value)
 {
-    Node leaf_node = table->pager.get_page(page_num);
+    LeafNode leaf_node = table->pager.get_page(page_num);
     uint32_t num_cells = *leaf_node.leaf_node_num_cells();
 
     if (num_cells >= LEAF_NODE_MAX_CELLS)
@@ -545,9 +573,9 @@ void Cursor::leaf_node_split_and_insert(uint32_t key, Row &value)
     Update parent or create a new parent.
     */
 
-    Node old_node = table->pager.get_page(page_num);
+    LeafNode old_node = table->pager.get_page(page_num);
     uint32_t new_page_num = table->pager.get_unused_page_num();
-    Node new_node = table->pager.get_page(new_page_num);
+    LeafNode new_node = table->pager.get_page(new_page_num);
     new_node.initialize_leaf_node();
 
     /*
@@ -557,7 +585,7 @@ void Cursor::leaf_node_split_and_insert(uint32_t key, Row &value)
     */
     for (int32_t i = LEAF_NODE_MAX_CELLS; i >= 0; i--)
     {
-        Node destination_node;
+        LeafNode destination_node;
         if (i >= LEAF_NODE_LEFT_SPLIT_COUNT)
         {
             destination_node = new_node;
@@ -567,7 +595,7 @@ void Cursor::leaf_node_split_and_insert(uint32_t key, Row &value)
             destination_node = old_node;
         }
         uint32_t index_within_node = i % LEAF_NODE_LEFT_SPLIT_COUNT;
-        Node destination = destination_node.leaf_node_cell(index_within_node);
+        LeafNode destination = destination_node.leaf_node_cell(index_within_node);
 
         if (i == cell_num)
         {
@@ -620,7 +648,7 @@ void Table::create_new_root(uint32_t right_child_page_num)
     New root node points to two children.
     */
 
-    Node root = pager.get_page(root_page_num);
+    InternalNode root = pager.get_page(root_page_num);
     Node right_child = pager.get_page(right_child_page_num);
     uint32_t left_child_page_num = pager.get_unused_page_num();
     Node left_child = pager.get_page(left_child_page_num);
@@ -825,7 +853,7 @@ bool DB::parse_statement(std::string &input_line, Statement &statement)
 }
 ExecuteResult DB::execute_insert(Statement &statement)
 {
-    Node leaf_node = table->pager.get_page(table->root_page_num);
+    LeafNode leaf_node = table->pager.get_page(table->root_page_num);
     uint32_t num_cells = *leaf_node.leaf_node_num_cells();
 
     Cursor *cursor = table->table_find(statement.row_to_insert.id);
