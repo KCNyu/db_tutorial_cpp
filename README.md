@@ -58,3 +58,5 @@ SQL ***(Structured Query Language:结构化查询语言)*** 是一种特定目�
 * [tutorial10-实现递归搜索](./tutorial10/README.md)
 * [tutorial11-实现扫描多层树](./tutorial11/README.md)
 * [tutorial12-实现更新拆分后的父结点](./tutorial12/README.md)
+
+## 7. [知乎专栏](https://www.zhihu.com/column/c_1472652536327389184)
